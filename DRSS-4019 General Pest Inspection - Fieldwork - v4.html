@@ -1552,27 +1552,27 @@ body.record .media-collection {
 }
 body.record .media-collection-heading {
 	margin: 0;
-	padding: 0 0 7px;
+	padding: 0 0 4px;
 	border-bottom: 1px solid #d5d6d8;
 	color: #3e4744;
-	font-size: 20px;
+	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.25;
 }
 body.record .media-pager {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	min-height: 52px;
+	gap: 4px;
+	min-height: 28px;
 	color: #7d8588;
-	font-size: 15px;
+	font-size: 10px;
 }
 body.record .media-page-arrow {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 34px;
-	height: 36px;
+	width: 18px;
+	height: 20px;
 	padding: 0;
 	border: 0;
 	background: transparent;
@@ -1583,18 +1583,18 @@ body.record .media-page-arrow:disabled {
 	color: #c3c8ca;
 	cursor: default;
 }
-body.record .media-page-arrow .icon { width: 20px; height: 20px; }
+body.record .media-page-arrow .icon { width: 12px; height: 12px; }
 body.record .media-page-number {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 34px;
-	height: 36px;
+	width: 18px;
+	height: 20px;
 	background: #f5f5f6;
 	color: #a0a5a7;
-	font-size: 16px;
+	font-size: 10px;
 }
-body.record .media-page-status { margin-left: 4px; }
+body.record .media-page-status { margin-left: 2px; }
 body.record .media-items {
 	display: flex;
 	flex-direction: column;
@@ -1604,45 +1604,45 @@ body.record .media-item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	min-height: 36px;
-	padding: 5px 8px;
+	min-height: 24px;
+	padding: 3px 4px;
 	border-bottom: 1px solid #e6e6e7;
 	color: var(--colour-text-primary);
-	font-size: 12px;
+	font-size: 10px;
 }
 body.record .media-item-remove {
-	width: 28px;
-	height: 28px;
+	width: 20px;
+	height: 20px;
 	border: 0;
 	background: transparent;
 	color: #56636a;
 	cursor: pointer;
 }
-body.record .media-item-remove .icon { width: 16px; height: 16px; }
+body.record .media-item-remove .icon { width: 12px; height: 12px; }
 .media-file-input { display: none; }
 body.record .media-add {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 10px;
-	min-width: 116px;
-	height: 64px;
-	margin-top: 6px;
-	padding: 0 16px;
-	border: 2px solid #b9bdc0;
-	border-radius: 9px;
+	gap: 5px;
+	min-width: 58px;
+	height: 32px;
+	margin-top: 3px;
+	padding: 0 8px;
+	border: 1px solid #b9bdc0;
+	border-radius: 4px;
 	background: linear-gradient(#fff, #e9e9ea);
 	color: #606568;
-	font-size: 18px;
+	font-size: 10px;
 	font-weight: 700;
 	cursor: pointer;
 }
-body.record .media-add .icon { width: 24px; height: 24px; }
+body.record .media-add .icon { width: 14px; height: 14px; }
 body.record .media-add:hover { background: linear-gradient(#fff, #dedfe0); }
 body.record .media-add:focus-visible { outline: 2px solid var(--colour-basic-branding); outline-offset: 2px; }
 @media (max-width: 720px) {
-	body.record .media-collection-heading { font-size: 18px; }
-	body.record .media-add { min-width: 100px; height: 56px; }
+	body.record .media-collection-heading { font-size: 11px; }
+	body.record .media-add { min-width: 54px; height: 30px; }
 }
 </style>
 </head>
@@ -2078,8 +2078,13 @@ window.GENERALPEST_SURVEY = {
 							type: "multilookup",
 							lookupOf: "RPMP rule",
 							origin: "new",
-							conditionText: "IF Compliance status = Non-compliant",
-							showWhen: { field: "complianceStatus", equals: "Non-compliant" },
+							conditionText: "IF Responsibility = Occupier led AND Compliance status = Non-compliant",
+							showWhen: {
+								all: [
+									{ field: "responsibility", equals: "Occupier led" },
+									{ field: "complianceStatus", equals: "Non-compliant" }
+								]
+							},
 							platform: { lead: "Confirmed 15 October:", text: "Council-provided RPMP rules, using the Pest Plant Inspection workflow. Rules are not yet in the RSHL environment but will be supplied for ORC." }
 						},
 						{
@@ -2089,11 +2094,16 @@ window.GENERALPEST_SURVEY = {
 							options: ["Yes", "No"],
 							mandatory: true,
 							origin: "new",
-							conditionText: "IF Compliance status is Compliant at end of Inspection or Non-compliant",
+							conditionText: "IF Responsibility = Occupier led AND Compliance status is Compliant at end of Inspection or Non-compliant",
 							showWhen: {
-								any: [
-									{ field: "complianceStatus", equals: "Compliant at end of Inspection" },
-									{ field: "complianceStatus", equals: "Non-compliant" }
+								all: [
+									{ field: "responsibility", equals: "Occupier led" },
+									{
+										any: [
+											{ field: "complianceStatus", equals: "Compliant at end of Inspection" },
+											{ field: "complianceStatus", equals: "Non-compliant" }
+										]
+									}
 								]
 							},
 							detail: "All occupier-led species on this survey go into one incident record after sync. The decision is made by the officer.",
