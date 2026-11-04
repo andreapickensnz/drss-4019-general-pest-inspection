@@ -1934,9 +1934,9 @@ window.GENERALPEST_SURVEY = {
 							origin: "new",
 							detail: "RSHL addition in workbook Survey-3, row 26: DateTime [DDMMYYYY 00:00]. No default or mandatory flag is specified.",
 							mapsTo: "Area Searched location - DateTime (requested mapping)",
-							platform: {
-								lead: "Implementation check:",
-								text: "Use this survey-level date and time as the source for Area Searched DateTime. The live binding, timezone handling and sync need verification; this HTML does not update location records."
+							engineering: {
+								lead: "Engineering to confirm:",
+								text: "Use this survey-level date and time as the source for the Area Searched location's DateTime attribute. Engineering must confirm the exact destination field/custom attribute and source-to-destination mapping, timezone handling, save/sync timing, and behaviour when the date is blank or later changed, so PS know exactly what they are configuring. This mapping is not yet verified; this HTML does not update location records."
 							}
 						},
 						{
@@ -2073,9 +2073,9 @@ window.GENERALPEST_SURVEY = {
 							geometry: "Polygon",
 							origin: "new",
 							dateTimeSource: "inspectionDate",
-							platform: {
-								lead: "Requested DateTime mapping:",
-								text: "DateTime takes Date of Inspection from Inspection Details. This binding is not yet verified in the live configuration; the prototype only previews the shared source value."
+							engineering: {
+								lead: "Engineering to confirm:",
+								text: "The requested source for the Area Searched location's DateTime attribute is Date of Inspection in Inspection Details. Engineering must confirm how each captured polygon/location is linked to its species row and receives that DateTime value, and provide PS with the exact field mapping and configuration required. This binding is not yet verified; the prototype only previews the shared source value and does not store it against a location."
 							}
 						},
 						{
