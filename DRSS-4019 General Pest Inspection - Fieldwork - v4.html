@@ -1997,7 +1997,11 @@ window.GENERALPEST_SURVEY = {
 							origin: "new",
 							conditionText: "IF Is all data being captured in Datascape? = No",
 							showWhen: { field: "dataInDatascape", equals: "No" },
-							detail: "A link to the external collection, for example S123."
+							detail: "A link to the external collection, for example S123.",
+							engineering: {
+								lead: "Datacom engineering question:",
+								text: "Can an editable Hyperlink/URL survey field be configured today in both Datascape and the Fieldwork app, including URL validation, opening the saved link and offline save/sync? This capability is not yet confirmed; a similarly named existing survey field is plain text, not proof of URL support. Confirm the supported configuration or identify any development required. The prototype illustrates the requested control only."
+							}
 						},
 						{
 							id: "storedWhere",
