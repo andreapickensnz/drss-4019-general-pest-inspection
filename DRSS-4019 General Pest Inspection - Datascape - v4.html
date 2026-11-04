@@ -1545,6 +1545,105 @@ body.record .row-heading {
 	cursor: pointer;
 }
 .add-part-remove .icon { width: 14px; height: 14px; }
+
+body.record .media-collection {
+	width: 100%;
+	margin: 0 0 14px;
+}
+body.record .media-collection-heading {
+	margin: 0;
+	padding: 0 0 7px;
+	border-bottom: 1px solid #d5d6d8;
+	color: #3e4744;
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+body.record .media-pager {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 52px;
+	color: #7d8588;
+	font-size: 15px;
+}
+body.record .media-page-arrow {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 36px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #687276;
+	cursor: pointer;
+}
+body.record .media-page-arrow:disabled {
+	color: #c3c8ca;
+	cursor: default;
+}
+body.record .media-page-arrow .icon { width: 20px; height: 20px; }
+body.record .media-page-number {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 36px;
+	background: #f5f5f6;
+	color: #a0a5a7;
+	font-size: 16px;
+}
+body.record .media-page-status { margin-left: 4px; }
+body.record .media-items {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+body.record .media-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 36px;
+	padding: 5px 8px;
+	border-bottom: 1px solid #e6e6e7;
+	color: var(--colour-text-primary);
+	font-size: 12px;
+}
+body.record .media-item-remove {
+	width: 28px;
+	height: 28px;
+	border: 0;
+	background: transparent;
+	color: #56636a;
+	cursor: pointer;
+}
+body.record .media-item-remove .icon { width: 16px; height: 16px; }
+.media-file-input { display: none; }
+body.record .media-add {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-width: 116px;
+	height: 64px;
+	margin-top: 6px;
+	padding: 0 16px;
+	border: 2px solid #b9bdc0;
+	border-radius: 9px;
+	background: linear-gradient(#fff, #e9e9ea);
+	color: #606568;
+	font-size: 18px;
+	font-weight: 700;
+	cursor: pointer;
+}
+body.record .media-add .icon { width: 24px; height: 24px; }
+body.record .media-add:hover { background: linear-gradient(#fff, #dedfe0); }
+body.record .media-add:focus-visible { outline: 2px solid var(--colour-basic-branding); outline-offset: 2px; }
+@media (max-width: 720px) {
+	body.record .media-collection-heading { font-size: 18px; }
+	body.record .media-add { min-width: 100px; height: 56px; }
+}
 </style>
 </head>
 <body class="record desk">
@@ -1647,12 +1746,8 @@ window.GENERALPEST_SURVEY = {
 
 		readerNotes: [
 			{
-				heading: "This replaces the pest plant inspection layout for this request.",
-				text: "The survey is General Pest Inspection, renamed from Animal Occ Delivery Inspection. The field list is the General Pest Inspection workbook. Pest plant inspection remains its own survey."
-			},
-			{
 				heading: "One block per target species.",
-				text: "From Target species through the result comments, the sheet marks every row as a repeater. The prototype draws that as one block the officer can add again for another species. In the Fieldwork app, that block is drawn at the bottom of the form."
+				text: "From Target species through the result comments, the sheet marks every row as a repeater. The prototype draws that as one block the officer can add again for another species. Fieldwork app limitation: repeating blocks are displayed after ordinary survey sections, so this block appears at the bottom of the form."
 			},
 			{
 				heading: "Anything in red is an open question.",
@@ -2865,6 +2960,9 @@ window.GENERALPEST_SURVEY = {
 	}
 
 	function mediaControl(field) {
+		if (surface === "desk" && document.body.classList.contains("record")) {
+			return mediaCollectionControl(field);
+		}
 		const row = el("div", "media-row");
 		const box = el("div", "control media-box", field.media === "video" ? "Upload · 0 added" : "Upload Photos");
 		row.appendChild(box);
@@ -2873,6 +2971,79 @@ window.GENERALPEST_SURVEY = {
 		btn.title = field.media === "video" ? "Video capture" : "Photo capture";
 		row.appendChild(btn);
 		return row;
+	}
+
+	function mediaCollectionControl(field) {
+		const collection = el("div", `media-collection media-collection-${field.media}`);
+		collection.appendChild(el("div", "media-collection-heading", field.label));
+
+		const files = [];
+		const pageSize = 5;
+		let page = 0;
+		const pager = el("div", "media-pager");
+		const previous = el("button", "media-page-arrow");
+		previous.type = "button";
+		previous.disabled = true;
+		previous.setAttribute("aria-label", `Previous ${field.label} page`);
+		previous.innerHTML = global.dsIcon ? global.dsIcon("chevron-left", "icon") : "‹";
+		const pageNumber = el("span", "media-page-number", "1");
+		const next = el("button", "media-page-arrow");
+		next.type = "button";
+		next.disabled = true;
+		next.setAttribute("aria-label", `Next ${field.label} page`);
+		next.innerHTML = global.dsIcon ? global.dsIcon("chevron-right", "icon") : "›";
+		const status = el("span", "media-page-status", "Page 1 of 1 (0 items)");
+		status.setAttribute("aria-live", "polite");
+		pager.append(previous, pageNumber, next, status);
+		collection.appendChild(pager);
+
+		const list = el("div", "media-items");
+		collection.appendChild(list);
+		const input = el("input", "media-file-input");
+		input.type = "file";
+		input.accept = field.media === "video" ? "video/*" : "image/*";
+		input.multiple = true;
+		input.setAttribute("aria-label", `Add ${field.label}`);
+		collection.appendChild(input);
+
+		const add = el("button", "media-add");
+		add.type = "button";
+		add.innerHTML = `${global.dsIcon ? global.dsIcon("plus", "icon") : "+"}<span>Add</span>`;
+		add.addEventListener("click", () => input.click());
+		collection.appendChild(add);
+
+		function renderPage() {
+			const pageCount = Math.max(1, Math.ceil(files.length / pageSize));
+			page = Math.min(page, pageCount - 1);
+			pageNumber.textContent = String(page + 1);
+			status.textContent = `Page ${page + 1} of ${pageCount} (${files.length} items)`;
+			previous.disabled = page === 0;
+			next.disabled = page >= pageCount - 1;
+			list.replaceChildren();
+			files.slice(page * pageSize, (page + 1) * pageSize).forEach((file, index) => {
+				const item = el("div", "media-item", file.name);
+				const remove = el("button", "media-item-remove");
+				remove.type = "button";
+				remove.setAttribute("aria-label", `Remove ${file.name}`);
+				remove.innerHTML = global.dsIcon ? global.dsIcon("x", "icon") : "×";
+				remove.addEventListener("click", () => {
+					files.splice(page * pageSize + index, 1);
+					renderPage();
+				});
+				item.appendChild(remove);
+				list.appendChild(item);
+			});
+		}
+
+		previous.addEventListener("click", () => { page -= 1; renderPage(); });
+		next.addEventListener("click", () => { page += 1; renderPage(); });
+		input.addEventListener("change", () => {
+			files.push(...Array.from(input.files || []));
+			page = Math.max(0, Math.ceil(files.length / pageSize) - 1);
+			renderPage();
+			input.value = "";
+		});
+		return collection;
 	}
 
 	function spatialControl(field) {
@@ -3052,9 +3223,10 @@ window.GENERALPEST_SURVEY = {
 			return wrap;
 		}
 		const deskToggle = field.type === "boolean" && surface !== "field" && document.body.classList.contains("record");
+		const deskMediaCollection = field.type === "media" && surface === "desk" && document.body.classList.contains("record");
 		const ask = engineeringBox(field);
 		if (ask) wrap.appendChild(ask);
-		if (field.type !== "action" && !deskToggle) wrap.appendChild(labelRow(field));
+		if (field.type !== "action" && !deskToggle && !deskMediaCollection) wrap.appendChild(labelRow(field));
 
 		const control = controlFor(field);
 		let node;
