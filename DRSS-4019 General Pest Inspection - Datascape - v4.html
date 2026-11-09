@@ -2036,8 +2036,9 @@ window.GENERALPEST_SURVEY = {
 						{
 							id: "storedWhere",
 							label: "Where will the data be stored?",
-							type: "multiselect",
+							type: "select",
 							options: ["Council Database", "Council GIS", "Sharepoint", "External Database", "Other"],
+							forceDropdown: true,
 							origin: "new",
 							conditionText: "IF Is all data being captured in Datascape? = No",
 							showWhen: { field: "dataInDatascape", equals: "No" },
@@ -2048,11 +2049,11 @@ window.GENERALPEST_SURVEY = {
 							label: "Database name",
 							type: "text",
 							origin: "new",
-							conditionText: "IF Where will the data be stored? includes Council Database or External Database",
+							conditionText: "IF Where will the data be stored? is Council Database or External Database",
 							showWhen: {
 								any: [
-									{ field: "storedWhere", includes: "Council Database" },
-									{ field: "storedWhere", includes: "External Database" }
+									{ field: "storedWhere", equals: "Council Database" },
+									{ field: "storedWhere", equals: "External Database" }
 								]
 							}
 						},
@@ -2061,8 +2062,8 @@ window.GENERALPEST_SURVEY = {
 							label: "Name of location where data is stored",
 							type: "text",
 							origin: "new",
-							conditionText: "IF Where will the data be stored? includes Other",
-							showWhen: { field: "storedWhere", includes: "Other" }
+							conditionText: "IF Where will the data be stored? is Other",
+							showWhen: { field: "storedWhere", equals: "Other" }
 						},
 						{ id: "collectionComments", label: "Comments", type: "textarea", origin: "new" },
 						{ id: "inspectionResultsHeading", label: "Pest Inspection results", type: "heading" },
@@ -2091,6 +2092,7 @@ window.GENERALPEST_SURVEY = {
 							label: "Responsibility",
 							type: "select",
 							options: ["Occupier led", "Council Control", "Other Pest"],
+							forceDropdown: true,
 							origin: "new",
 							detail: "The sheet spells this Responibility. No starting answer is given."
 						},
@@ -2099,6 +2101,7 @@ window.GENERALPEST_SURVEY = {
 							label: "Compliance status",
 							type: "select",
 							options: ["Compliant", "Compliant at end of Inspection", "Non-compliant"],
+							forceDropdown: true,
 							value: "Compliant",
 							mandatory: true,
 							origin: "new",
@@ -2596,11 +2599,11 @@ window.GENERALPEST_SURVEY = {
 
 	function controlFor(field) {
 		if (field.type === "boolean") {
-			if (surface === "desk") return { mode: "toggle", why: "Switch, matching the existing Animal Occ Delivery Inspection form." };
-			return { mode: "brick", why: "Boolean brick — one tap, per the design article." };
+				return { mode: "toggle", why: "Yes/No toggle switch." };
 		}
 		if (field.type === "select") {
 			if (surface === "desk") return { mode: "dropdown", why: "Single-selection dropdown on the Datascape record form." };
+				if (field.forceDropdown) return { mode: "dropdown", why: "Single-selection dropdown." };
 			const labels = (field.options || []).map(optionLabel);
 			const longest = labels.reduce((max, l) => Math.max(max, l.length), 0);
 			if (field.forceList) {
@@ -2618,11 +2621,7 @@ window.GENERALPEST_SURVEY = {
 			return { mode: "lookup", why: "Lookup select — one choice from the shared list." };
 		}
 		if (field.type === "multiselect") {
-			const count = (field.options || []).length;
-			if (count >= 7) {
-				return { mode: "searchlist" };
-			}
-			return { mode: "checklist", why: `Vertical checkboxes — fewer than 7 options.` };
+				return { mode: "dropdown", why: "Multi-select dropdown with selected chips." };
 		}
 		return { mode: field.type };
 	}
@@ -2879,7 +2878,7 @@ window.GENERALPEST_SURVEY = {
 		});
 
 		state[key(field.id, scope)] = selected;
-		if (surface === "desk") {
+			if (surface === "desk" || mode === "dropdown") {
 			const details = el("details", "multi-dropdown");
 			const summary = el("summary", "multi-trigger");
 			summary.setAttribute("aria-label", field.label);
@@ -3236,18 +3235,18 @@ window.GENERALPEST_SURVEY = {
 			if (field.showWhen) register(wrap, field.showWhen, field.conditionText, scope);
 			return wrap;
 		}
-		const deskToggle = field.type === "boolean" && surface !== "field" && document.body.classList.contains("record");
+			const booleanSwitch = field.type === "boolean";
 		const deskMediaCollection = field.type === "media" && surface === "desk" && document.body.classList.contains("record");
 		const ask = engineeringBox(field);
 		if (ask) wrap.appendChild(ask);
-		if (field.type !== "action" && !deskToggle && !deskMediaCollection) wrap.appendChild(labelRow(field));
+			if (field.type !== "action" && !booleanSwitch && !deskMediaCollection) wrap.appendChild(labelRow(field));
 
 		const control = controlFor(field);
 		let node;
 		switch (field.type) {
 			case "text": case "number": case "date": case "datetime": case "time": case "url": node = inputControl(field, scope); break;
 			case "textarea": node = textareaControl(field, scope); break;
-			case "boolean": node = deskToggle ? toggleControl(field, scope) : choiceControl(field, scope, "brick"); break;
+				case "boolean": node = toggleControl(field, scope); break;
 			case "select":
 				node = control.mode === "dropdown" ? dropdownControl(field, scope) : choiceControl(field, scope, control.mode);
 				break;
@@ -3403,19 +3402,23 @@ window.GENERALPEST_SURVEY = {
 		if (section.headless) {
 			wrap.classList.add("section-headless");
 		} else {
-			const head = el("button", "section-head");
-			head.type = "button";
-			head.setAttribute("aria-expanded", "true");
+			const head = el(depth === 0 ? "button" : "div", "section-head");
+			if (depth === 0) {
+				head.type = "button";
+				head.setAttribute("aria-expanded", "true");
+			}
 			head.appendChild(el("span", "section-name", section.name));
 			const sectionChip = originChip(section.origin);
 			if (sectionChip) head.appendChild(sectionChip);
-			head.appendChild(collapseToggleControl(false, section.name));
+			if (depth === 0) head.appendChild(collapseToggleControl(false, section.name));
 			wrap.appendChild(head);
-			head.addEventListener("click", () => {
-				const collapsed = body.classList.toggle("collapsed");
-				head.setAttribute("aria-expanded", String(!collapsed));
-				updateCollapseToggleControl(head.querySelector(".toggle"), collapsed, section.name);
-			});
+			if (depth === 0) {
+				head.addEventListener("click", () => {
+					const collapsed = body.classList.toggle("collapsed");
+					head.setAttribute("aria-expanded", String(!collapsed));
+					updateCollapseToggleControl(head.querySelector(".toggle"), collapsed, section.name);
+				});
+			}
 		}
 
 		/*
