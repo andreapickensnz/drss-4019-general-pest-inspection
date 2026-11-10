@@ -32,7 +32,8 @@ for (const file of pages) {
 		assert.equal(fieldDefinition("dataLink"), "");
 		assert.match(html, /General Pest Inspection v4/);
 		assert.match(html, /Survey-5\.xlsx/);
-		assert.match(html, /standard Survey Date mapping \{\{SurveyDate\}\}/);
+		assert.match(fieldDefinition("areaSearched"), /combine Survey Date and Survey Time for the Area Searched location DateTime attribute/);
+		assert.ok(fieldDefinition("areaSearched").includes("{[SurveyDate].AddTime([SurveyTime])}"));
 		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Datascape%20-%20v4\.html"/);
 		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Fieldwork%20-%20v4\.html"/);
 		if (file.includes("Datascape")) {
