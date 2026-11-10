@@ -1644,6 +1644,9 @@ body.record .media-add:focus-visible { outline: 2px solid var(--colour-basic-bra
 	body.record .media-collection-heading { font-size: 11px; }
 	body.record .media-add { min-width: 54px; height: 30px; }
 }
+
+body.record .rec-identity .survey-key-field { min-width: 150px; }
+body.record .rec-identity .survey-key-field .spec-note { font-size: 10px; font-weight: 400; }
 </style>
 </head>
 <body class="record desk">
@@ -1683,6 +1686,8 @@ body.record .media-add:focus-visible { outline: 2px solid var(--colour-basic-bra
 				</div>
 				<div class="rec-identity">
 					<label>Survey Type<input class="survey-type" value="General Pest Inspection" readonly /></label>
+					<label class="survey-key-field"><span>Survey Date <span class="req">*</span></span><input id="survey-date" type="date" required aria-label="Survey Date" /><small class="spec-note spec-gis">Maps to GIS: Survey Date</small></label>
+					<label class="survey-key-field"><span>Survey Time</span><input id="survey-time" type="time" aria-label="Survey Time" /><small class="spec-note spec-gis">Maps to GIS: Survey Date</small></label>
 					<label>Number<input value="" readonly /></label>
 					<div class="rec-meta"><div class="rec-modified">Last Modified<span>Not saved</span></div><div class="rec-status">In progress</div></div>
 				</div>
@@ -1718,8 +1723,8 @@ body.record .media-add:focus-visible { outline: 2px solid var(--colour-basic-bra
 /*
 	DRSS-4019 General Pest Inspection.
 
-	Updated from "DRSS-4019 General Pest Inspection Survey-4.xlsx", sheet
-	"General pest inspection", and DRSS-4019 comments through 4 November 2026.
+		Updated from "DRSS-4019 General Pest Inspection Survey-5.xlsx", sheet
+		"General pest inspection", and DRSS-4019 comments through 4 November 2026.
 
 	The ticket renames the existing Animal Occ Delivery Inspection survey to
 	General Pest Inspection, and removes Biosecurity Inspection Council Delivery.
@@ -1736,7 +1741,24 @@ window.GENERALPEST_SURVEY = {
 		property: "Bendigo Station, Tarras",
 		officer: "H. Giles",
 		council: "ORC",
-		csv: "DRSS-4019 General Pest Inspection Survey-4.xlsx",
+		csv: "DRSS-4019 General Pest Inspection Survey-5.xlsx",
+		keyInformationBar: [
+			{
+				id: "surveyDate",
+				label: "Survey Date",
+				type: "date",
+				mandatory: true,
+				mapsToGIS: true,
+				mappingSpecifics: "Survey Date"
+			},
+			{
+				id: "surveyTime",
+				label: "Survey Time",
+				type: "time",
+				mapsToGIS: true,
+				mappingSpecifics: "Survey Date"
+			}
+		],
 		movedNote: "This prototype uses the fieldwork app version ordering, with repeating blocks after ordinary sections. This ordering still needs verification in the app.",
 
 		// Ticket DRSS-4019, description and the 5 October 2026 comment.
@@ -1928,18 +1950,6 @@ window.GENERALPEST_SURVEY = {
 							detail: "Five options. The sheet types “Select single” in the default column, so no starting answer is given."
 						},
 						{
-							id: "inspectionDate",
-							label: "Date of Inspection",
-							type: "datetime",
-							origin: "new",
-							detail: "RSHL addition in workbook Survey-3, row 26: DateTime [DDMMYYYY 00:00]. No default or mandatory flag is specified.",
-							mapsTo: "Area Searched location - DateTime (requested mapping)",
-							engineering: {
-								lead: "Engineering to confirm:",
-								text: "Use this survey-level date and time as the source for the Area Searched location's DateTime attribute. Engineering must confirm the exact destination field/custom attribute and source-to-destination mapping, timezone handling, save/sync timing, and behaviour when the date is blank or later changed, so PS know exactly what they are configuring. This mapping is not yet verified; this HTML does not update location records."
-							}
-						},
-						{
 							id: "inspectionAddress",
 							label: "Inspection address",
 							type: "lookup",
@@ -2021,24 +2031,10 @@ window.GENERALPEST_SURVEY = {
 							platform: { lead: "Confirmed 15 October:", text: "This list will be provided at implementation by each council. The list in this schema is approved for ORC and the set up of this survey." }
 						},
 						{
-							id: "dataLink",
-							label: "Link to data collection",
-							type: "url",
-							origin: "new",
-							conditionText: "IF Is all data being captured in Datascape? = No",
-							showWhen: { field: "dataInDatascape", equals: "No" },
-							detail: "A link to the external collection, for example S123.",
-							engineering: {
-								lead: "Datacom engineering question:",
-								text: "Can an editable Hyperlink/URL survey field be configured today in both Datascape and the Fieldwork app, including URL validation, opening the saved link and offline save/sync? This capability is not yet confirmed; a similarly named existing survey field is plain text, not proof of URL support. Confirm the supported configuration or identify any development required. The prototype illustrates the requested control only. **Engineering must confirm for PS:** the actual custom-input/value-definition codes, supported URL behaviour, and Fieldwork save/sync configuration. Those details are not yet established for this survey."
-							}
-						},
-						{
 							id: "storedWhere",
 							label: "Where will the data be stored?",
-							type: "select",
+							type: "multiselect",
 							options: ["Council Database", "Council GIS", "Sharepoint", "External Database", "Other"],
-							forceDropdown: true,
 							origin: "new",
 							conditionText: "IF Is all data being captured in Datascape? = No",
 							showWhen: { field: "dataInDatascape", equals: "No" },
@@ -2049,11 +2045,11 @@ window.GENERALPEST_SURVEY = {
 							label: "Database name",
 							type: "text",
 							origin: "new",
-							conditionText: "IF Where will the data be stored? is Council Database or External Database",
+							conditionText: "IF Where will the data be stored? includes Council Database or External Database",
 							showWhen: {
 								any: [
-									{ field: "storedWhere", equals: "Council Database" },
-									{ field: "storedWhere", equals: "External Database" }
+									{ field: "storedWhere", includes: "Council Database" },
+									{ field: "storedWhere", includes: "External Database" }
 								]
 							}
 						},
@@ -2062,8 +2058,8 @@ window.GENERALPEST_SURVEY = {
 							label: "Name of location where data is stored",
 							type: "text",
 							origin: "new",
-							conditionText: "IF Where will the data be stored? is Other",
-							showWhen: { field: "storedWhere", equals: "Other" }
+							conditionText: "IF Where will the data be stored? includes Other",
+							showWhen: { field: "storedWhere", includes: "Other" }
 						},
 						{ id: "collectionComments", label: "Comments", type: "textarea", origin: "new" },
 						{ id: "inspectionResultsHeading", label: "Pest Inspection results", type: "heading" },
@@ -2073,11 +2069,7 @@ window.GENERALPEST_SURVEY = {
 							type: "spatial",
 							geometry: "Polygon",
 							origin: "new",
-							dateTimeSource: "inspectionDate",
-							engineering: {
-								lead: "Engineering to confirm:",
-								text: "The requested source for the Area Searched location's DateTime attribute is Date of Inspection in Inspection Details. Engineering must confirm how each captured polygon/location is linked to its species row and receives that DateTime value, and provide PS with the exact field mapping and configuration required. This binding is not yet verified; the prototype only previews the shared source value and does not store it against a location."
-							}
+							gis: ["Area Searched location DateTime uses the standard Survey Date mapping {{SurveyDate}}."]
 						},
 						{
 							id: "speciesFound",
@@ -2091,8 +2083,8 @@ window.GENERALPEST_SURVEY = {
 							id: "responsibility",
 							label: "Responsibility",
 							type: "select",
-							options: ["Occupier led", "Council Control", "Other Pest"],
 							forceDropdown: true,
+							options: ["Occupier led", "Council Control", "Other Pest"],
 							origin: "new",
 							detail: "The sheet spells this Responibility. No starting answer is given."
 						},
@@ -2100,8 +2092,8 @@ window.GENERALPEST_SURVEY = {
 							id: "complianceStatus",
 							label: "Compliance status",
 							type: "select",
-							options: ["Compliant", "Compliant at end of Inspection", "Non-compliant"],
 							forceDropdown: true,
+							options: ["Compliant", "Compliant at end of Inspection", "Non-compliant"],
 							value: "Compliant",
 							mandatory: true,
 							origin: "new",
@@ -2599,11 +2591,11 @@ window.GENERALPEST_SURVEY = {
 
 	function controlFor(field) {
 		if (field.type === "boolean") {
-				return { mode: "toggle", why: "Yes/No toggle switch." };
+			return { mode: "toggle", why: "Yes/No toggle switch." };
 		}
 		if (field.type === "select") {
 			if (surface === "desk") return { mode: "dropdown", why: "Single-selection dropdown on the Datascape record form." };
-				if (field.forceDropdown) return { mode: "dropdown", why: "Single-selection dropdown." };
+			if (field.forceDropdown) return { mode: "dropdown", why: "Single-selection dropdown." };
 			const labels = (field.options || []).map(optionLabel);
 			const longest = labels.reduce((max, l) => Math.max(max, l.length), 0);
 			if (field.forceList) {
@@ -2621,7 +2613,7 @@ window.GENERALPEST_SURVEY = {
 			return { mode: "lookup", why: "Lookup select — one choice from the shared list." };
 		}
 		if (field.type === "multiselect") {
-				return { mode: "dropdown", why: "Multi-select dropdown with selected chips." };
+			return { mode: "dropdown", why: "Multi-select dropdown with selected chips." };
 		}
 		return { mode: field.type };
 	}
@@ -2878,7 +2870,7 @@ window.GENERALPEST_SURVEY = {
 		});
 
 		state[key(field.id, scope)] = selected;
-			if (surface === "desk" || mode === "dropdown") {
+		if (surface === "desk" || mode === "dropdown") {
 			const details = el("details", "multi-dropdown");
 			const summary = el("summary", "multi-trigger");
 			summary.setAttribute("aria-label", field.label);
@@ -3235,18 +3227,18 @@ window.GENERALPEST_SURVEY = {
 			if (field.showWhen) register(wrap, field.showWhen, field.conditionText, scope);
 			return wrap;
 		}
-			const booleanSwitch = field.type === "boolean";
+		const booleanSwitch = field.type === "boolean";
 		const deskMediaCollection = field.type === "media" && surface === "desk" && document.body.classList.contains("record");
 		const ask = engineeringBox(field);
 		if (ask) wrap.appendChild(ask);
-			if (field.type !== "action" && !booleanSwitch && !deskMediaCollection) wrap.appendChild(labelRow(field));
+		if (field.type !== "action" && !booleanSwitch && !deskMediaCollection) wrap.appendChild(labelRow(field));
 
 		const control = controlFor(field);
 		let node;
 		switch (field.type) {
 			case "text": case "number": case "date": case "datetime": case "time": case "url": node = inputControl(field, scope); break;
 			case "textarea": node = textareaControl(field, scope); break;
-				case "boolean": node = toggleControl(field, scope); break;
+			case "boolean": node = toggleControl(field, scope); break;
 			case "select":
 				node = control.mode === "dropdown" ? dropdownControl(field, scope) : choiceControl(field, scope, control.mode);
 				break;
@@ -3618,7 +3610,7 @@ window.GENERALPEST_SURVEY = {
 			});
 		});
 		locationDates.forEach(({ preview, source }) => {
-			preview.textContent = `DateTime source preview: ${state[source] ? state[source].replace("T", " ") : "Date of Inspection not entered"}`;
+			preview.textContent = `DateTime source preview: ${state[source] ? state[source].replace("T", " ") : "Survey Date not entered"}`;
 		});
 		indexEntries.forEach(({ entry, node }) => { entry.hidden = !!node.closest(".is-inactive"); });
 
