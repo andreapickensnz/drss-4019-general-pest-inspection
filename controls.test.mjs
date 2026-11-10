@@ -4,7 +4,9 @@ import test from "node:test";
 
 const pages = [
 	"DRSS-4019 General Pest Inspection - Datascape - v4.html",
-	"DRSS-4019 General Pest Inspection - Fieldwork - v4.html"
+	"DRSS-4019 General Pest Inspection - Fieldwork - v4.html",
+	"DRSS-4019 General Pest Inspection - Datascape - v6.html",
+	"DRSS-4019 General Pest Inspection - Fieldwork - v6.html"
 ];
 
 for (const file of pages) {
@@ -19,14 +21,37 @@ for (const file of pages) {
 
 	test(`${file} uses the agreed selection controls`, () => {
 		assert.ok(fieldDefinition("dataCollectedUsing").includes('type: "multiselect"'), "Data collected using stays multi-select");
-		assert.ok(fieldDefinition("storedWhere").includes('type: "select"'), "storage location is single-select");
-		assert.ok(fieldDefinition("storedWhere").includes("forceDropdown: true"), "storage location is a dropdown on Fieldwork");
+		if (file.endsWith("v6.html")) {
+			assert.ok(fieldDefinition("storedWhere").includes('type: "multiselect"'), "Survey-5 specifies multi-select storage");
+			assert.ok(html.includes('field: "storedWhere", includes: "Council Database"'));
+			assert.ok(html.includes('field: "storedWhere", includes: "External Database"'));
+			assert.ok(html.includes('field: "storedWhere", includes: "Other"'));
+		} else {
+			assert.ok(fieldDefinition("storedWhere").includes('type: "select"'), "v4 storage location is single-select");
+			assert.ok(fieldDefinition("storedWhere").includes("forceDropdown: true"), "v4 storage location is a dropdown on Fieldwork");
+			assert.ok(html.includes('field: "storedWhere", equals: "Council Database"'));
+			assert.ok(html.includes('field: "storedWhere", equals: "External Database"'));
+			assert.ok(html.includes('field: "storedWhere", equals: "Other"'));
+		}
 		assert.ok(fieldDefinition("responsibility").includes("forceDropdown: true"), "Responsibility uses a dropdown on Fieldwork");
 		assert.ok(fieldDefinition("complianceStatus").includes("forceDropdown: true"), "Compliance status uses a dropdown on Fieldwork");
-		assert.ok(html.includes('field: "storedWhere", equals: "Council Database"'));
-		assert.ok(html.includes('field: "storedWhere", equals: "External Database"'));
-		assert.ok(html.includes('field: "storedWhere", equals: "Other"'));
 	});
+
+	if (file.endsWith("v6.html")) {
+		test(`${file} includes Survey-5 removals and v6 navigation`, () => {
+			assert.equal(fieldDefinition("inspectionDate"), "");
+			assert.equal(fieldDefinition("dataLink"), "");
+			assert.match(html, /General Pest Inspection v6/);
+			assert.match(html, /Survey-5\.xlsx/);
+			assert.match(html, /standard Survey Date mapping \{\{SurveyDate\}\}/);
+			assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Datascape%20-%20v6\.html"/);
+			assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Fieldwork%20-%20v6\.html"/);
+			if (file.includes("Datascape")) {
+				assert.match(html, /id="survey-date" type="date" required/);
+				assert.match(html, /id="survey-time" type="time" aria-label/);
+			}
+		});
+	}
 
 	test(`${file} renders multiselects as chip dropdowns and Yes/No as switches`, () => {
 		assert.ok(controlFor.includes('return { mode: "toggle"'), "Yes/No selects a switch");
