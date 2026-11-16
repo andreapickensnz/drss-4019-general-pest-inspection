@@ -3,8 +3,8 @@ import fs from "node:fs";
 import test from "node:test";
 
 const pages = [
-	"DRSS-4019 General Pest Inspection - Datascape - v4.html",
-	"DRSS-4019 General Pest Inspection - Fieldwork - v4.html"
+	"DRSS-4019 General Pest Inspection - Datascape - v5.html",
+	"DRSS-4019 General Pest Inspection - Fieldwork - v5.html"
 ];
 
 for (const file of pages) {
@@ -19,6 +19,7 @@ for (const file of pages) {
 
 	test(`${file} uses the agreed selection controls`, () => {
 		assert.ok(fieldDefinition("dataCollectedUsing").includes('type: "multiselect"'), "Data collected using stays multi-select");
+		assert.ok(fieldDefinition("dataCollectedUsing").includes('options: ["S123", "Quick Capture", "Fieldmaps", "Notebook/Datasheets"]'), "collection methods match Survey-6");
 		assert.ok(fieldDefinition("storedWhere").includes('type: "multiselect"'), "Survey-5 specifies multi-select storage");
 		assert.ok(html.includes('field: "storedWhere", includes: "Council Database"'));
 		assert.ok(html.includes('field: "storedWhere", includes: "External Database"'));
@@ -27,15 +28,15 @@ for (const file of pages) {
 		assert.ok(fieldDefinition("complianceStatus").includes("forceDropdown: true"), "Compliance status uses a dropdown on Fieldwork");
 	});
 
-	test(`${file} is the Survey-5 v4 preview`, () => {
+	test(`${file} is the v5 preview with v5 navigation`, () => {
 		assert.equal(fieldDefinition("inspectionDate"), "");
 		assert.equal(fieldDefinition("dataLink"), "");
-		assert.match(html, /General Pest Inspection v4/);
+		assert.match(html, /General Pest Inspection v5/);
 		assert.match(html, /Survey-5\.xlsx/);
 		assert.match(fieldDefinition("areaSearched"), /combine Survey Date and Survey Time for the Area Searched location DateTime attribute/);
 		assert.ok(fieldDefinition("areaSearched").includes("{[SurveyDate].AddTime([SurveyTime])}"));
-		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Datascape%20-%20v4\.html"/);
-		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Fieldwork%20-%20v4\.html"/);
+		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Datascape%20-%20v5\.html"/);
+		assert.match(html, /href="DRSS-4019%20General%20Pest%20Inspection%20-%20Fieldwork%20-%20v5\.html"/);
 		if (file.includes("Datascape")) {
 			assert.match(html, /id="survey-date" type="date" required/);
 			assert.match(html, /id="survey-time" type="time" aria-label/);
