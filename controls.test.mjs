@@ -43,6 +43,14 @@ for (const file of pages) {
 		}
 	});
 
+	test(`${file} defers species name and RPMP display to DRSS-4018`, () => {
+		const targetSpecies = fieldDefinition("targetSpecies");
+		assert.ok(targetSpecies.includes("DRSS-4018"), "species display dependency is documented");
+		assert.ok(/out of scope for (the )?DRSS-4019/.test(targetSpecies), "species display is explicitly out of scope");
+		assert.ok(!targetSpecies.includes("card:"), "no species detail card is promised or rendered");
+		assert.ok(!targetSpecies.includes("card shows the species name and RPMP status"));
+	});
+
 	test(`${file} renders multiselects as chip dropdowns and Yes/No as switches`, () => {
 		assert.ok(controlFor.includes('return { mode: "toggle"'), "Yes/No selects a switch");
 		assert.ok(controlFor.includes('return { mode: "dropdown"'), "multi-selects use the dropdown control");
