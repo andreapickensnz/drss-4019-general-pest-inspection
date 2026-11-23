@@ -1868,13 +1868,10 @@ window.GENERALPEST_SURVEY = {
 						},
 						{
 							id: "warrantName",
-							label: "Warrant Shown to name",
+							label: "Warrant Shown to Name (if contact is not found)",
 							type: "text",
-							mandatory: true,
 							origin: "new",
-							conditionText: "IF Warrant Shown = Yes and the contact is not in the lookup",
-							showWhen: { all: [{ field: "warrantShown", equals: "Yes" }, { field: "warrantContact", filled: false }] },
-							detail: "Shown only when the officer cannot find the person in the contact list."
+							detail: "Enter the name if the person cannot be found in the contact list."
 						},
 						{
 							id: "warrantRelationship",
